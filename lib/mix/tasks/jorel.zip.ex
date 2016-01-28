@@ -3,8 +3,8 @@ defmodule Mix.Tasks.Jorel.Zip do
 
   @shortdoc "Create a Zip archive with your release"
 
-  def run(_) do
-    {:ok, _} = Application.ensure_all_started(:jorel)
-    :jorel.run([{:config, 'jorel.config'}, {:output_dir, './_jorel'}], [:zip])
+  def run(argv) do
+    Mix.Task.run("jorel.gen_config", argv)
+    JorelMix.Utils.jorel(["tar"])
   end
 end

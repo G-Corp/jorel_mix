@@ -3,8 +3,8 @@ defmodule Mix.Tasks.Jorel.Release do
 
   @shortdoc "Release your app"
 
-  def run(_) do
-    {:ok, _} = Application.ensure_all_started(:jorel)
-    :jorel.run([{:config, 'jorel.config'}, {:output_dir, './_jorel'}], [:release])
+  def run(argv) do
+    Mix.Task.run("jorel.gen_config", argv)
+    JorelMix.Utils.jorel(["release"])
   end
 end

@@ -3,8 +3,8 @@ defmodule Mix.Tasks.Jorel.Deb do
 
   @shortdoc "Create a Debian package with your release"
 
-  def run(_) do
-    {:ok, _} = Application.ensure_all_started(:jorel)
-    :jorel.run([{:config, 'jorel.config'}, {:output_dir, './_jorel'}], [:deb])
+  def run(argv) do
+    Mix.Task.run("jorel.gen_config", argv)
+    JorelMix.Utils.jorel(["deb"])
   end
 end

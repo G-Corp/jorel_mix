@@ -10,26 +10,26 @@ defmodule JorelMix.Mixfile do
      deps: deps]
   end
 
-  # Configuration for the OTP application
-  #
-  # Type "mix help compile.app" for more information
   def application do
     [applications: [:logger]]
   end
 
-  # Dependencies can be Hex packages:
-  #
-  #   {:mydep, "~> 0.3.0"}
-  #
-  # Or git/path repositories:
-  #
-  #   {:mydep, git: "https://github.com/elixir-lang/mydep.git", tag: "0.1.0"}
-  #
-  # Type "mix help deps" for more examples and options
   defp deps do
+    []
+  end
+
+  def jorel do
     [
-      {:erlydtl, ~r/.*/, git: "https://github.com/erlydtl/erlydtl.git", branch: "master", manager: :make, override: true, compile: "make"},
-      {:jorel, ~r/.*/, git: "https://github.com/emedia-project/jorel.git", branch: "master"}
+      ignore_deps: [],
+      all_deps: false,
+      boot: [:elixir, :sasl],
+      all_deps: false,
+      output_dir: '_jorel',
+      exclude_dirs: ['**/_jorel/**', '**/_rel*/**', '**/test/**'],
+      include_src: false,
+      include_erts: true,
+      disable_relup: false,
+      providers: [:jorel_provider_tar, :jorel_provider_zip, :jorel_provider_deb, :jorel_provider_config]
     ]
   end
 end
