@@ -22,7 +22,7 @@ defmodule JorelMix.Mixfile do
     [
       ignore_deps: [],
       all_deps: false,
-      boot: [:elixir, :sasl],
+      boot: [:elixir, :jorel_mix, :sasl],
       all_deps: false,
       output_dir: '_jorel',
       exclude_dirs: ['**/_jorel/**', '**/_rel*/**', '**/test/**'],
