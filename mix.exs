@@ -27,7 +27,7 @@ defmodule JorelMix.Mixfile do
   defp package do
     [
       files: ["lib", "mix.exs", "README.md"],
-      maintainers: ["Grégoire Lejeune"]
+      maintainers: ["Grégoire Lejeune"],
       licenses: ["BSD 3.0"],
       links: %{"GitHub" => "https://github.com/emedia-project/jorel_mix",
         "Docs" => "http://jorel.in"}
