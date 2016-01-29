@@ -3,7 +3,7 @@ defmodule JorelMix.Mixfile do
 
   def project do
     [app: :jorel_mix,
-     version: "0.0.1",
+     version: "0.0.2",
      elixir: "~> 1.2",
      description: description,
      package: package,
