@@ -5,10 +5,9 @@ defmodule Mix.Tasks.Jorel.GenConfig do
   @shortdoc "Create a default Jorel configuration"
 
   def run(argv) do
-    Mix.Project.compile(argv)
     {args, _, _} = OptionParser.parse(argv)
     if args[:force] == true or File.exists?(@jorel_config) == false do
-      JorelMix.Utils.build_config
+      JorelMix.Utils.build_config(argv)
     end
   end
 end

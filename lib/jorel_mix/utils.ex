@@ -1,10 +1,10 @@
 defmodule JorelMix.Utils do
-  @jorel_app "./.jorel/jorel"
+  @jorel_app __DIR__ <> "/.jorel/jorel"
   @jorel_dir Path.dirname(@jorel_app)
   @jorel_url 'https://github.com/emedia-project/jorel/wiki/jorel'
   @jorel_config 'jorel.config'
 
-  def jorel(params \\ []) do
+  def jorel(argv, params \\ []) do
     if not File.exists?(@jorel_app) do
       Mix.Shell.IO.info("Download jorel")
       :ssl.start()
@@ -18,22 +18,34 @@ defmodule JorelMix.Utils do
           Kernel.exit("Faild to download Jorel!")
       end
     end
+    build_config(argv)
     System.cmd(Path.expand(@jorel_app), params, stderr_to_stdout: true, into: IO.stream(:stdio, :line))
+    File.rm!(@jorel_config)
   end
 
-  def build_config() do
+  def build_config(argv) do
+    Mix.Project.compile(argv)
     mixfile = Mix.Project.get!
     version = Mix.Project.config[:version] |> String.to_char_list
     app = Mix.Project.config[:app]
     applications = get_project_apps(mixfile)
     boot = [:elixir|applications] ++ [app, :sasl]
 
-    base_config = get_jorel_config(mixfile, boot)
-    {:exclude_dirs, exclude} = List.keyfind(base_config, :exclude_dirs, 0, ['**/_jorel/**'])
-    deps = all_apps(exclude)
-    conf = [{:release, {app, version}, deps}] ++ base_config
+    jorel_config = get_jorel_config(mixfile, boot)
+    {:exclude_dirs, exclude} = List.keyfind(jorel_config, :exclude_dirs, 0, ['**/_jorel/**'])
+
+    jorel_config = case List.keyfind(jorel_config, :boot, 0) do
+      {:boot, _} -> jorel_config
+      _ -> [{:boot, boot}|jorel_config]
+    end
+
+    jorel_config = case List.keyfind(jorel_config, :release, 0) do
+      {:release, _, _} -> jorel_config
+      _ -> [{:release, {app, version}, [:elixir|all_apps(exclude)]}|jorel_config]
+    end
+
     :file.write_file(@jorel_config, "", [:write])
-    Enum.each(conf, fn(c) ->
+    Enum.each(jorel_config, fn(c) ->
       :file.write_file(@jorel_config, :io_lib.fwrite('~p.~n', [c]), [:append])
     end)
   end

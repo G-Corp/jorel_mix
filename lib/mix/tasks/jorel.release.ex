@@ -4,7 +4,6 @@ defmodule Mix.Tasks.Jorel.Release do
   @shortdoc "Release your app"
 
   def run(argv) do
-    Mix.Task.run("jorel.gen_config", argv)
-    JorelMix.Utils.jorel(["release"])
+    JorelMix.Utils.jorel(argv, ["release"])
   end
 end

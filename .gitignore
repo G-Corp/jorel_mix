@@ -4,5 +4,5 @@
 /deps
 erl_crash.dump
 *.ez
-/.jorel
+.jorel
 jorel.config
