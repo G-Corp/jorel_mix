@@ -73,9 +73,9 @@ defmodule JorelMix.Utils do
 
   defp jorel_config_default(boot), do: [
     ignore_deps: [:jorel_mix],
-    all_deps: false,
     boot: boot,
     all_deps: false,
+    sys_config: 'config/config.exs',
     output_dir: '_jorel',
     exclude_dirs: ['**/_jorel/**', '**/_rel*/**', '**/test/**'],
     include_src: false,
