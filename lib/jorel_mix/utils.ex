@@ -2,14 +2,21 @@ defmodule JorelMix.Utils do
   @jorel_app __DIR__ <> "/.jorel/jorel"
   @jorel_dir Path.dirname(@jorel_app)
   @jorel_url 'https://github.com/emedia-project/jorel/wiki/jorel'
+  @jorel_master_url 'https://github.com/emedia-project/jorel/wiki/jorel.master'
   @jorel_config 'jorel.config'
 
   def jorel(argv, params \\ []) do
-    if not File.exists?(@jorel_app) do
-      Mix.Shell.IO.info("Download jorel")
+    {args, _, _} = OptionParser.parse(argv)
+    jorel_url = if args[:use_master] == true do
+      @jorel_master_url
+    else
+      @jorel_url
+    end
+    if not File.exists?(@jorel_app) or args[:use_master] do
+      Mix.Shell.IO.info("Download jorel from #{jorel_url}")
       :ssl.start()
       :inets.start()
-      case :httpc.request(:get, {@jorel_url, []}, [autoredirect: true], []) do
+      case :httpc.request(:get, {jorel_url, []}, [autoredirect: true], []) do
         {:ok, {{_, 200, _}, _, body}} ->
           if not File.exists?(@jorel_dir), do: File.mkdir_p!(@jorel_dir)
           File.write!(@jorel_app, body)
@@ -21,6 +28,7 @@ defmodule JorelMix.Utils do
     build_config(argv)
     System.cmd(Path.expand(@jorel_app), params, stderr_to_stdout: true, into: IO.stream(:stdio, :line))
     File.rm!(@jorel_config)
+    if args[:use_master], do: File.rm!(@jorel_app)
   end
 
   def build_config(argv) do
