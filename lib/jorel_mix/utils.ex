@@ -1,5 +1,6 @@
 defmodule JorelMix.Utils do
-  @jorel_app __DIR__ <> "/.jorel/jorel"
+  @jorel_app Path.expand("~/.jorel/jorel")
+  @jorel_app_master Path.expand("~/.jorel/jorel.master")
   @jorel_dir Path.dirname(@jorel_app)
   @jorel_url 'https://github.com/emedia-project/jorel/wiki/jorel'
   @jorel_master_url 'https://github.com/emedia-project/jorel/wiki/jorel.master'
@@ -7,35 +8,40 @@ defmodule JorelMix.Utils do
 
   def jorel(argv, params \\ []) do
     {args, _, _} = OptionParser.parse(argv)
-    jorel_url = if args[:use_master] == true do
-      @jorel_master_url
+    {jorel_url, jorel_app} = if args[:master] == true do
+      {@jorel_master_url, @jorel_app_master}
     else
-      @jorel_url
+      {@jorel_url, @jorel_app}
     end
-    if not File.exists?(@jorel_app) or args[:use_master] do
+    jorel_dir = Path.dirname(jorel_app)
+    Mix.Shell.IO.info "Use #{jorel_app}"
+    if not File.exists?(jorel_app) or args[:upgrade] do
       Mix.Shell.IO.info("Download jorel from #{jorel_url}")
       :ssl.start()
       :inets.start()
       case :httpc.request(:get, {jorel_url, []}, [autoredirect: true], []) do
         {:ok, {{_, 200, _}, _, body}} ->
-          if not File.exists?(@jorel_dir), do: File.mkdir_p!(@jorel_dir)
-          File.write!(@jorel_app, body)
-          File.chmod!(@jorel_app, 0o755)
+          if not File.exists?(jorel_dir), do: File.mkdir_p!(jorel_dir)
+          File.write!(jorel_app, body)
+          File.chmod!(jorel_app, 0o755)
         _ ->
           Kernel.exit("Faild to download Jorel!")
       end
     end
     keep_config = File.exists?(@jorel_config)
-    build_config(argv)
-    System.cmd(Path.expand(@jorel_app), params, stderr_to_stdout: true, into: IO.stream(:stdio, :line))
+    if keep_config == false or args[:force] == true do
+      build_config(argv)
+    else
+      Mix.Shell.IO.info "#{@jorel_config} exist, use it. (use --force to override)"
+    end
+    System.cmd(Path.expand(jorel_app), params, stderr_to_stdout: true, into: IO.stream(:stdio, :line))
     unless keep_config do
       File.rm!(@jorel_config) 
     end
-    if args[:use_master], do: File.rm!(@jorel_app)
   end
 
   def build_config(argv) do
-    Mix.shell.info "Generate #{@jorel_config}"
+    Mix.Shell.IO.info "Generate #{@jorel_config}"
     Mix.Project.compile(argv)
     mixfile = Mix.Project.get!
     version = Mix.Project.config[:version] |> String.to_char_list
