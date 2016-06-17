@@ -1,8 +1,9 @@
 /_build
-/_jorel
+_jorel/
 /cover
 /deps
 erl_crash.dump
 *.ez
 .jorel
 jorel.config
+mix.lock
