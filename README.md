@@ -50,6 +50,14 @@ def jorel do
 end
 ```
 
+## Usage
+
+```
+mix deps.get
+mix compile
+mix jorel.release
+```
+
 ## Contributing
 
 1. Fork it ( https://github.com/emedia-project/jorel_mix/fork )
