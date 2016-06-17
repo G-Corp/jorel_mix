@@ -25,13 +25,15 @@ defmodule JorelMix.Utils do
           Kernel.exit("Faild to download Jorel!")
       end
     end
+    keep_config = File.exists?(@jorel_config),
     build_config(argv)
     System.cmd(Path.expand(@jorel_app), params, stderr_to_stdout: true, into: IO.stream(:stdio, :line))
-    File.rm!(@jorel_config)
+    File.rm!(@jorel_config) unless keep_config
     if args[:use_master], do: File.rm!(@jorel_app)
   end
 
   def build_config(argv) do
+    Mix.shell.info "Generate #{@jorel_config}"
     Mix.Project.compile(argv)
     mixfile = Mix.Project.get!
     version = Mix.Project.config[:version] |> String.to_char_list

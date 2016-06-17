@@ -15,6 +15,41 @@ Elixir Mix Task to use [Jorel](https://github.com/emedia-project/jorel).
 
 Add `jorel_mix` in your dependencies.
 
+```
+{jorel_mix:, "~> 0.0.1"}
+```
+
+or
+
+```
+{:jorel_mix, git: "https://github.com/emedia-project/jorel_mix", branch: "master"},
+```
+
+## Configure
+
+Create a `jorel` function in your `mix.exs` file.
+
+This function must return an an array containing the jorel configuration. See [jorel.in](http://jorel.in/configuration/) for more informations.
+
+Example :
+
+```elixir
+def jorel do
+  [
+    ignore_deps: [:jorel_mix],
+    all_deps: false,
+    output_dir: '_jorel',
+    boot: [:jorel_sample, :sasl],
+    exclude_dirs: ['**/_jorel/**', '**/_rel*/**', '**/test/**'],
+    include_src: true,
+    include_erts: true,
+    sys_config: 'config/config.exs',
+    disable_relup: false,
+    providers: [:jorel_provider_tar, :jorel_provider_zip, :jorel_provider_deb, :jorel_provider_config]
+  ]
+end
+```
+
 ## Contributing
 
 1. Fork it ( https://github.com/emedia-project/jorel_mix/fork )
