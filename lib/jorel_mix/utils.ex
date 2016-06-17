@@ -25,7 +25,7 @@ defmodule JorelMix.Utils do
           Kernel.exit("Faild to download Jorel!")
       end
     end
-    keep_config = File.exists?(@jorel_config),
+    keep_config = File.exists?(@jorel_config)
     build_config(argv)
     System.cmd(Path.expand(@jorel_app), params, stderr_to_stdout: true, into: IO.stream(:stdio, :line))
     File.rm!(@jorel_config) unless keep_config
