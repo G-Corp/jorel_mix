@@ -1,7 +1,6 @@
 defmodule JorelMix.Utils do
   @jorel_app Path.expand("~/.jorel/jorel")
   @jorel_app_master Path.expand("~/.jorel/jorel.master")
-  @jorel_dir Path.dirname(@jorel_app)
   @jorel_url 'https://github.com/emedia-project/jorel/wiki/jorel'
   @jorel_master_url 'https://github.com/emedia-project/jorel/wiki/jorel.master'
   @jorel_config 'jorel.config'
