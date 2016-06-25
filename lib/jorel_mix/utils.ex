@@ -24,7 +24,7 @@ defmodule JorelMix.Utils do
           File.write!(jorel_app, body)
           File.chmod!(jorel_app, 0o755)
         _ ->
-          Kernel.exit("Faild to download Jorel!")
+          Kernel.exit("Failed to download Jorel!")
       end
     end
     keep_config = File.exists?(@jorel_config)
