@@ -2,29 +2,35 @@ defmodule JorelMix.Utils do
   @jorel_app Path.expand("~/.jorel/jorel")
   @jorel_app_master Path.expand("~/.jorel/jorel.master")
   @jorel_url 'https://github.com/emedia-project/jorel/wiki/jorel'
+  @jorel_md5_url 'https://github.com/emedia-project/jorel/wiki/jorel.md5'
   @jorel_master_url 'https://github.com/emedia-project/jorel/wiki/jorel.master'
+  @jorel_master_md5_url 'https://github.com/emedia-project/jorel/wiki/jorel.master.md5'
   @jorel_config 'jorel.config'
 
   def jorel(argv, params \\ []) do
     {args, _, _} = OptionParser.parse(argv)
-    {jorel_url, jorel_app} = if args[:master] == true do
-      {@jorel_master_url, @jorel_app_master}
+    {jorel_url, jorel_md5_url, jorel_app} = if args[:master] == true do
+      {@jorel_master_url, @jorel_master_md5_url, @jorel_app_master}
     else
-      {@jorel_url, @jorel_app}
+      {@jorel_url, @jorel_md5_url, @jorel_app}
     end
     jorel_dir = Path.dirname(jorel_app)
     Mix.Shell.IO.info "Use #{jorel_app}"
     if not File.exists?(jorel_app) or args[:upgrade] do
-      Mix.Shell.IO.info("Download jorel from #{jorel_url}")
       :ssl.start()
       :inets.start()
-      case :httpc.request(:get, {jorel_url, []}, [autoredirect: true], []) do
-        {:ok, {{_, 200, _}, _, body}} ->
-          if not File.exists?(jorel_dir), do: File.mkdir_p!(jorel_dir)
-          File.write!(jorel_app, body)
-          File.chmod!(jorel_app, 0o755)
-        _ ->
-          Kernel.exit("Failed to download Jorel!")
+      unless check(jorel_app, jorel_md5_url) do
+        case :httpc.request(:get, {jorel_url, []}, [autoredirect: true], []) do
+          {:ok, {{_, 200, _}, _, body}} ->
+            Mix.Shell.IO.info("Upgrade #{jorel_app}")
+            if not File.exists?(jorel_dir), do: File.mkdir_p!(jorel_dir)
+            File.write!(jorel_app, body)
+            File.chmod!(jorel_app, 0o755)
+          _ ->
+            Kernel.exit("Failed to download Jorel!")
+        end
+      else
+        Mix.Shell.IO.info("#{jorel_app} is up to date.")
       end
     end
     keep_config = File.exists?(@jorel_config)
@@ -36,6 +42,27 @@ defmodule JorelMix.Utils do
     System.cmd(Path.expand(jorel_app), params, stderr_to_stdout: true, into: IO.stream(:stdio, :line))
     unless keep_config do
       File.rm!(@jorel_config) 
+    end
+  end
+
+  defp check(jorel_app, jorel_md5_url) do
+    :crypto.start()
+    if File.exists?(jorel_app) do
+      case :file.read_file(jorel_app) do
+        {:ok, data} ->
+          case :httpc.request(:get, {jorel_md5_url, []}, [autoredirect: true], []) do
+            {:ok, {{_, 200, _}, _, md5}} ->
+              (:crypto.hash(:md5, data) 
+               |> Base.encode16 
+               |> String.downcase) == String.strip(List.to_string(md5)) 
+            _ ->
+              false
+          end
+        _ ->
+          false
+      end
+    else
+      false
     end
   end
 
