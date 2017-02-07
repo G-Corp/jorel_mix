@@ -5,9 +5,9 @@ defmodule JorelMix.Mixfile do
     [app: :jorel_mix,
      version: "0.0.4",
      elixir: "~> 1.2",
-     description: description,
-     package: package,
-     deps: deps]
+     description: description(),
+     package: package(),
+     deps: deps()]
   end
 
   def application do
