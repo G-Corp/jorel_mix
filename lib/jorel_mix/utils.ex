@@ -1,10 +1,10 @@
 defmodule JorelMix.Utils do
-  @jorel_app Path.expand("~/.jorel/jorel")
-  @jorel_app_master Path.expand("~/.jorel/jorel.master")
-  @jorel_url 'https://github.com/emedia-project/jorel/wiki/jorel'
-  @jorel_md5_url 'https://github.com/emedia-project/jorel/wiki/jorel.md5'
-  @jorel_master_url 'https://github.com/emedia-project/jorel/wiki/jorel.master'
-  @jorel_master_md5_url 'https://github.com/emedia-project/jorel/wiki/jorel.master.md5'
+  @jorel_app Path.expand("~/.cache/jorel/bin/jorel")
+  @jorel_app_master Path.expand("~/.cache/jorel/bin/jorel.master")
+  @jorel_url 'https://github.com/G-Corp/jorel/wiki/jorel'
+  @jorel_md5_url 'https://github.com/G-Corp/jorel/wiki/jorel.md5'
+  @jorel_master_url 'https://github.com/G-Corp/jorel/wiki/jorel.master'
+  @jorel_master_md5_url 'https://github.com/G-Corp/jorel/wiki/jorel.master.md5'
   @jorel_config 'jorel.config'
 
   def jorel(argv, params \\ []) do
@@ -41,7 +41,7 @@ defmodule JorelMix.Utils do
     end
     System.cmd(Path.expand(jorel_app), params, stderr_to_stdout: true, into: IO.stream(:stdio, :line))
     unless keep_config do
-      File.rm!(@jorel_config) 
+      File.rm!(@jorel_config)
     end
   end
 
@@ -52,9 +52,9 @@ defmodule JorelMix.Utils do
         {:ok, data} ->
           case :httpc.request(:get, {jorel_md5_url, []}, [autoredirect: true], []) do
             {:ok, {{_, 200, _}, _, md5}} ->
-              (:crypto.hash(:md5, data) 
-               |> Base.encode16 
-               |> String.downcase) == String.strip(List.to_string(md5)) 
+              (:crypto.hash(:md5, data)
+               |> Base.encode16
+               |> String.downcase) == String.strip(List.to_string(md5))
             _ ->
               false
           end
@@ -77,6 +77,7 @@ defmodule JorelMix.Utils do
 
     jorel_config = get_jorel_config(mixfile, boot)
     {:exclude_dirs, exclude} = List.keyfind(jorel_config, :exclude_dirs, 0, ['**/_jorel/**'])
+    {:ignore_deps, ignore} = List.keyfind(jorel_config, :ignore_deps, 0, [])
 
     jorel_config = case List.keyfind(jorel_config, :boot, 0) do
       {:boot, _} -> jorel_config
@@ -85,7 +86,7 @@ defmodule JorelMix.Utils do
 
     jorel_config = case List.keyfind(jorel_config, :release, 0) do
       {:release, _, _} -> jorel_config
-      _ -> [{:release, {app, version}, [:elixir|all_apps(exclude)]}|jorel_config]
+      _ -> [{:release, {app, version}, [:elixir|all_apps(exclude, ignore)]}|jorel_config]
     end
 
     :file.write_file(@jorel_config, "", [:write])
@@ -128,11 +129,16 @@ defmodule JorelMix.Utils do
     providers: [:jorel_provider_tar, :jorel_provider_zip, :jorel_provider_deb, :jorel_provider_config]
   ]
 
-  defp all_apps(exclude) do
+  defp all_apps(exclude, ignore) do
     wildcard("**/ebin/*.app", exclude, [:expand_path])
     |> List.foldl([:sasl], fn(app, acc) ->
-      [String.to_atom(Path.basename(app, ".app"))|acc]
-    end) 
+      appname = String.to_atom(Path.basename(app, ".app"))
+      if Enum.member?(ignore, appname) do
+        acc
+      else
+        [appname|acc]
+      end
+    end)
     |> Enum.uniq
   end
 
@@ -150,7 +156,7 @@ defmodule JorelMix.Utils do
         true -> acc;
         false -> [e|acc]
       end
-    end) 
+    end)
     |> Enum.reverse
   end
 
@@ -183,6 +189,6 @@ defmodule JorelMix.Utils do
           {[c|acc], t}
     end)
     {:ok, exp} = Enum.reverse(exp) |> List.to_string |> Regex.compile
-    Regex.match?(exp, Kernel.to_string(path)) 
+    Regex.match?(exp, Kernel.to_string(path))
   end
 end
